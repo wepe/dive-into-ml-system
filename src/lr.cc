@@ -3,9 +3,11 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <boost/format.hpp>
 #include "lr.h"
-#include "common_functions.h"
+#include "utils.h"
 
+using namespace std;
 using namespace Eigen;
 
 LR::LR(int max_iter,double alpha,double lambda,double tolerance){
@@ -21,10 +23,8 @@ LR::~LR(){}
 
 void LR::fit(MatrixXd X,VectorXi y){
 	//learn VectorXd W, consider reg,max_iter,tol.   
-	//TODO: check X,y
 
-	//VectorXd W = VectorXd::Random(X.cols()+1); wrong! u can not declare W again,otherwise it didn't represent the class member
-	W = VectorXd::Random(X.cols()+1);  //the last column of weight represent b
+	W = VectorXd::Random(X.cols()+1);  //the last column of weight represent bias
 	MatrixXd X_new(X.rows(),X.cols()+1);
 	X_new<<X,MatrixXd::Ones(X.rows(),1);  //last column is 1.0
 
@@ -33,13 +33,15 @@ void LR::fit(MatrixXd X,VectorXi y){
         VectorXd y_d = y.cast<double>();  //cast type first
 		VectorXd E = y_pred - y_d;
 
-		W = (1.0-lambda/y.size())*W - alpha*X_new.transpose()*E;  //W:= (1-lambda/n_samples)W-alpha*X^T*E
+        //W:= (1-lambda/n_samples)W-alpha*X^T*E
 		//reference : http://blog.csdn.net/pakko/article/details/37878837
+		W = (1.0-lambda/y.size())*W - alpha*X_new.transpose()*E;
 		
-		//when loss<tol, break
-		double loss = CommonFunctions::crossEntropyLoss(y,predict_prob(X));
+		double loss = Utils::crossEntropyLoss(y,predict_prob(X));
+        cout<<boost::format("Iteration: %d, logloss:%.5f") %iter %loss << endl;
+		
+        //when loss<tolerance, break
 		if(loss<=tolerance) break;
-
 	}
 
 }
@@ -52,7 +54,7 @@ VectorXd LR::predict_prob(MatrixXd X){
 	int num_samples = X_new.rows();
 	VectorXd y_pred_prob = VectorXd::Zero(num_samples);
 	for(int num=0;num<num_samples;num++){
-		y_pred_prob(num) = CommonFunctions::sigmod(X_new.row(num).dot(W));
+		y_pred_prob(num) = Utils::sigmod(X_new.row(num).dot(W));
 	}
 
 	return y_pred_prob;
@@ -74,13 +76,13 @@ Eigen::VectorXd LR::getW(){
 	return W;
 }
 
-void LR::saveWeights(std::string filename){
-	//save the model (save the weight ) into filename. 
+void LR::saveWeights(std::string fpath){
+	//save the model (save the weight ). 
 	std::ofstream ofile;
-	std::string path = "./weights/"+filename;
+	std::string path = fpath;
 	ofile.open(path.c_str());
 	if (!ofile.is_open()){
-		std::cerr<<"Can not open the file when call LR::saveParams"<<std::endl;
+		std::cerr<<"Can not open the file when call LR::saveWeights"<<std::endl;
 		return;
     }
 

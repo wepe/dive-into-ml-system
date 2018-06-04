@@ -1,13 +1,13 @@
 #include <cmath>
-#include "common_functions.h"
+#include "utils.h"
 
 
-double CommonFunctions::sigmod(double x){
+double Utils::sigmod(double x){
 	return 1.0/(1.0+exp(-x));
 }
 
 
-double CommonFunctions::crossEntropyLoss(Eigen::VectorXi y,Eigen::VectorXd h){
+double Utils::crossEntropyLoss(Eigen::VectorXi y,Eigen::VectorXd h){
 	Eigen::VectorXd y_d = y.cast<double>();
 	int n = y_d.size();
 	double loss;
