@@ -6,7 +6,7 @@ labels = [0,0,0,0,0,1,1,1,1,1]
 
 clf = model(max_iter=200,alpha=0.01,l2_lambda=0.05,tolerance=0.001)
 
-clf.fit(features,labels)
-print clf.fmodel
-print clf.predict_prob(features)
+clf._fit(features,labels)
+print clf._predict_prob(features)
 print clf.predict(features)
+

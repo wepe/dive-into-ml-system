@@ -13,7 +13,7 @@ void gen_random(char *s, int len) {
     s[len] = 0;
 }
 
-extern "C" char* train(double** features,int* labels,int row,int col,int max_iter,double alpha,double lambda,double tolerance){
+extern "C" char* fit(double** features,int* labels,int row,int col,int max_iter,double alpha,double lambda,double tolerance){
     //initialize data of Eigen type
     MatrixXd X(row,col);
     VectorXi y(row);
@@ -85,7 +85,7 @@ int main(){
         labels[i] = labels_value[i];
     }
 
-    char* ret = train(features,labels,row,col,200,0.01,0.0,0.01);
+    char* ret = fit(features,labels,row,col,200,0.01,0.0,0.01);
     cout<<ret<<endl;
 }
 
