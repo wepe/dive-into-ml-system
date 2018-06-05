@@ -6,7 +6,8 @@
 
 class LR{
 public:
-	LR(int max_iter=100,double alpha=0.01,double lambda=0.05,double tolerance=0.01);
+    LR();
+	LR(int max_iter,double alpha,double lambda,double tolerance);
     ~LR();
 	void fit(Eigen::MatrixXd X,Eigen::VectorXi y);
 	Eigen::VectorXd getW();

@@ -39,6 +39,35 @@ extern "C" char* train(double** features,int* labels,int row,int col,int max_ite
 }
 
 
+extern "C" double* predict_prob(double** features,int row,int col,char* fmodel){
+    LR clf = LR();
+    clf.loadWeights(fmodel);
+    MatrixXd X(row,col);
+    for(int i=0;i<row;i++){
+        for(int j=0;j<col;j++){
+            X(i,j) = features[i][j];
+        }
+    }
+    VectorXd pred = clf.predict_prob(X);
+
+    double* ret = new double[row];
+    for(int i=0;i<row;i++){
+        ret[i] = pred(i);
+    }
+
+    return ret;
+}
+
+
+extern "C" int* predict(double** features,int row,int col,char* fmodel){
+    double* prob = predict_prob(features,row,col,fmodel);
+    int* ret = new int[row];
+    for(int i=0;i<row;i++){
+        ret[i] = prob[i]>0.5?1:0;
+    }
+    return ret;
+}
+
 int main(){
     int row=10,col=2;
     double** features = new double *[row];

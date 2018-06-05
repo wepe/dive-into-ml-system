@@ -10,6 +10,10 @@
 using namespace std;
 using namespace Eigen;
 
+LR::LR(){
+    LR(100,0.01,0.01,0.001);
+}
+
 LR::LR(int max_iter,double alpha,double lambda,double tolerance){
 	this->lambda = lambda; 
 	this->max_iter = max_iter;
@@ -79,8 +83,7 @@ Eigen::VectorXd LR::getW(){
 void LR::saveWeights(std::string fpath){
 	//save the model (save the weight ). 
 	std::ofstream ofile;
-	std::string path = fpath;
-	ofile.open(path.c_str());
+	ofile.open(fpath.c_str());
 	if (!ofile.is_open()){
 		std::cerr<<"Can not open the file when call LR::saveWeights"<<std::endl;
 		return;
@@ -95,13 +98,12 @@ void LR::saveWeights(std::string fpath){
 }
 
 
-void LR::loadWeights(std::string filename){
+void LR::loadWeights(std::string fpath){
 	//load the model (load the weight ) from filename.
 	std::ifstream ifile;
-	std::string path = "./weights/"+filename;
-	ifile.open(path.c_str());
+	ifile.open(fpath.c_str());
 	if (!ifile.is_open()){
-		std::cerr<<"Can not open the file when call LR::loadParams"<<std::endl;
+		std::cerr<<"Can not open the file when call LR::loadWeights"<<std::endl;
 		return;
     }
 
