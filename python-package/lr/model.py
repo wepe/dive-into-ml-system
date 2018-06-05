@@ -1,7 +1,7 @@
 from ctypes import *
 import os
 
-liblr = cdll.LoadLibrary('./liblr.so')
+liblr = cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__))+'/liblr.so')
 
 class model(object):
     def __init__(self,max_iter=200,alpha=0.01,l2_lambda=0.01,tolerance=0.001):
@@ -27,12 +27,15 @@ class model(object):
             double_p_list.append(cast(double_2d_array[i],POINTER(c_double)))
         double_p_p = (POINTER(c_double)*row)(*double_p_list)
         # call the C function
-        liblr.train.argtypes = [POINTER(POINTER(c_double)),POINTER(c_int),c_int,c_int]
-        liblr.train.restype = POINTER(c_double)
-        res = liblr.train(double_p_p,int_p,c_int(row),c_int(col))
+        liblr.train.argtypes = [POINTER(POINTER(c_double)),POINTER(c_int),c_int,c_int,c_int,c_double,c_double,c_double]
+        liblr.train.restype = POINTER(c_char)
+        res = liblr.train(double_p_p,int_p,c_int(row),c_int(col),c_int(self.max_iter),c_double(self.alpha),c_double(self.l2_lambda),c_double(self.tolerance))
+        self.fmodel = ''.join([res[i] for i in range(25)])
+
 
     def predict_prob(self,features):
-        pass
+        assert self.fmodel is not None
+
 
     def predict(self,features):
-        pass
+        assert self.fmodel is not None
