@@ -1,6 +1,7 @@
 from ctypes import *
 import numpy as np
 import os
+from threading import Thread
 
 liblr = cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__))+'/liblr.so')
 
@@ -51,7 +52,9 @@ class model(object):
         liblr.predict_prob.argtypes = [POINTER(POINTER(c_double)),c_int,c_int,POINTER(c_char)]
         liblr.predict_prob.restype = POINTER(c_double)
 
-        res = liblr.predict_prob(double_p_p,c_int(row),c_int(col),c_char_p(self.fmodel))
+        #res = liblr.predict_prob(double_p_p,c_int(row),c_int(col),c_char_p(self.fmodel))
+        res = pool.apply_async(liblr.predict_prob,(double_p_p,c_int(row),c_int(col),c_char_p(self.fmodel)))
+        res = res.get()
         return [res[i] for i in range(row)]
 
 
@@ -76,12 +79,20 @@ class model(object):
         res = liblr.fit(double_p_p,int_p,c_int(row),c_int(col),c_int(self.max_iter),c_double(self.alpha),c_double(self.l2_lambda),c_double(self.tolerance))
         self.fmodel = ''.join([res[i] for i in range(25)])
 
+        '''
+        # enable interrupt, by this method we should set the return pointer as function argument
+        t = Thread(target=liblr.fit,args=(double_p_p,int_p,c_int(row),c_int(col),c_int(self.max_iter),c_double(self.alpha),c_double(self.l2_lambda),c_double(self.tolerance)))
+        t.daemon = True
+        t.start()
+        while t.is_alive():
+            t.join(0.1)
+        '''
 
     def predict_prob(self,features):
         assert self.fmodel is not None
         # convert to numpy array
-        if not isinstance(features,np.ndarray):
-            features = np.array(features,dtype=np.double)
+        #if not isinstance(features,np.ndarray):
+        features = np.asarray(features,dtype=np.double)
 
         # convert to ctypes's type
         row,col = features.shape
@@ -99,3 +110,5 @@ class model(object):
         prob = self.predict_prob(features)
         return [1 if p>0.5 else 0 for p in prob]
 
+    def __del__(self):
+        os.remove(self.fmodel)

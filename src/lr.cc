@@ -40,9 +40,12 @@ void LR::fit(MatrixXd X,VectorXi y){
         //W:= (1-lambda/n_samples)W-alpha*X^T*E
 		//reference : http://blog.csdn.net/pakko/article/details/37878837
 		W = (1.0-lambda/y.size())*W - alpha*X_new.transpose()*E;
-		
-		double loss = Utils::crossEntropyLoss(y,predict_prob(X));
-        cout<<boost::format("Iteration: %d, logloss:%.5f") %iter %loss << endl;
+	    
+        //calculate the logloss and accuracy after this step
+        y_pred = predict_prob(X);
+		double loss = Utils::crossEntropyLoss(y,y_pred);
+        double acc = Utils::accuracy(y,y_pred);
+        cout<<boost::format("Iteration: %d, logloss:%.5f, accuracy:%.5f") %iter %loss %acc<< endl;
 		
         //when loss<tolerance, break
 		if(loss<=tolerance) break;
