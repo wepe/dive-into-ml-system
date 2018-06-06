@@ -58,14 +58,14 @@ class model(object):
     # support python list, numpy array
     def fit(self,features,labels):
         # convert to numpy array
-        if not isinstance(features,np.ndarray):
-            features = np.array(features,dtype=np.double)
-        if isinstance(labels,np.ndarray):
-            labels = list(labels)
+        #if not isinstance(features,np.ndarray):
+        features = np.asarray(features,dtype=np.double)
+        #if not isinstance(labels,np.ndarray):
+        labels = np.ascontiguousarray(np.asarray(labels,dtype=np.int32),dtype=np.int32)
 
         # convert to ctypes's type
         row,col = features.shape
-        int_p = cast((c_int*row)(*labels),POINTER(c_int))
+        int_p = cast(labels.ctypes.data, POINTER(c_int))
         double_p_p = (features.ctypes.data + np.arange(features.shape[0]) * features.strides[0]).astype(np.uintp)
 
         # call the C function
