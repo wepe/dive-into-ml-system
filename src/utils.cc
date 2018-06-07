@@ -13,7 +13,7 @@ double Utils::crossEntropyLoss(Eigen::VectorXi y,Eigen::VectorXd y_pred){
 	double loss;
 	for(int i=0;i<n;i++){
         double yi_prob = y_pred(i);
-        yi_prob = std::min(std::max(yi_prob,0.0000001),0.9999999);
+        yi_prob = std::min(std::max(yi_prob,0.0001),0.9999);
 		loss -= (y_d(i)*log2(yi_prob)+(1-y_d(i))*log2(1-yi_prob));
 	}
 	return loss/n;

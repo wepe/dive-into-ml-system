@@ -70,23 +70,23 @@ class model(object):
         row,col = features.shape
         int_p = cast(labels.ctypes.data, POINTER(c_int))
         double_p_p = (features.ctypes.data + np.arange(features.shape[0]) * features.strides[0]).astype(np.uintp)
+        char_p = c_char_p("0"*25)
 
         # call the C function
         DOUBLEPP = np.ctypeslib.ndpointer(dtype=np.uintp,ndim=1,flags='C')
         INTP = POINTER(c_int)
-        liblr.fit.argtypes = [DOUBLEPP,INTP,c_int,c_int,c_int,c_double,c_double,c_double]
-        liblr.fit.restype = POINTER(c_char)
-        res = liblr.fit(double_p_p,int_p,c_int(row),c_int(col),c_int(self.max_iter),c_double(self.alpha),c_double(self.l2_lambda),c_double(self.tolerance))
-        self.fmodel = ''.join([res[i] for i in range(25)])
+        liblr.fit.argtypes = [DOUBLEPP,INTP,c_int,c_int,c_int,c_double,c_double,c_double,c_char_p]
+        liblr.fit.restype = None
 
-        '''
-        # enable interrupt, by this method we should set the return pointer as function argument
-        t = Thread(target=liblr.fit,args=(double_p_p,int_p,c_int(row),c_int(col),c_int(self.max_iter),c_double(self.alpha),c_double(self.l2_lambda),c_double(self.tolerance)))
+        # enable interrupt
+        t = Thread(target=liblr.fit,args=(double_p_p,int_p,c_int(row),c_int(col),c_int(self.max_iter),c_double(self.alpha),c_double(self.l2_lambda),c_double(self.tolerance),char_p))
         t.daemon = True
         t.start()
         while t.is_alive():
             t.join(0.1)
-        '''
+
+        # get the result
+        self.fmodel = char_p.value
 
     def predict_prob(self,features):
         assert self.fmodel is not None
@@ -97,18 +97,26 @@ class model(object):
         # convert to ctypes's type
         row,col = features.shape
         double_p_p = (features.ctypes.data + np.arange(features.shape[0]) * features.strides[0]).astype(np.uintp)
-
+        ret = (c_double*row)(*([-1.0 for _ in range(row)]))
+        ret_double_p = cast(ret,POINTER(c_double))
         # call C function
         DOUBLEPP = np.ctypeslib.ndpointer(dtype=np.uintp,ndim=1,flags='C')
-        liblr.predict_prob.argtypes = [DOUBLEPP,c_int,c_int,c_char_p]
-        liblr.predict_prob.restype = POINTER(c_double)
-        res = liblr.predict_prob(double_p_p,c_int(row),c_int(col),c_char_p(self.fmodel))
-        return [res[i] for i in range(row)]
+        liblr.predict_prob.argtypes = [DOUBLEPP,c_int,c_int,c_char_p,POINTER(c_double)]
+        liblr.predict_prob.restype = None
+        # enable interrupt
+        t = Thread(target=liblr.predict_prob,args=(double_p_p,c_int(row),c_int(col),c_char_p(self.fmodel),ret_double_p))
+        t.daemon = True
+        t.start()
+        while t.is_alive():
+            t.join(0.1)
+
+        return [ret_double_p[i] for i in range(row)]
 
     def predict(self,features):
         assert self.fmodel is not None
         prob = self.predict_prob(features)
         return [1 if p>0.5 else 0 for p in prob]
+
 
     def __del__(self):
         os.remove(self.fmodel)

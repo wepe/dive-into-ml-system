@@ -1,11 +1,12 @@
 #include <iostream>
 #include "lr.h"
+#include <ctime>
 
 using namespace Eigen;
 using namespace std;
 
-
 void gen_random(char *s, int len) {
+    srand (time(NULL));
     static const char alphanum[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     for (int i = 0; i < len; ++i) {
         s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
@@ -13,7 +14,7 @@ void gen_random(char *s, int len) {
     s[len] = 0;
 }
 
-extern "C" char* fit(double** features,int* labels,int row,int col,int max_iter,double alpha,double lambda,double tolerance){
+extern "C" void fit(double** features,int* labels,int row,int col,int max_iter,double alpha,double lambda,double tolerance,char* ret){
     //initialize data of Eigen type
     MatrixXd X(row,col);
     VectorXi y(row);
@@ -29,17 +30,15 @@ extern "C" char* fit(double** features,int* labels,int row,int col,int max_iter,
     clf.fit(X,y);
 
     //save the model weights
-    char* fmodel = new char[20];
+    char* fmodel = new char[21];
     gen_random(fmodel,20);
     string model_path = "/tmp/"+string(fmodel);
     clf.saveWeights(model_path);
-    char *ret = new char[model_path.length()+1];
     strcpy(ret,model_path.c_str());
-    return ret;
 }
 
 
-extern "C" double* predict_prob(double** features,int row,int col,char* fmodel){
+extern "C" void predict_prob(double** features,int row,int col,char* fmodel,double* ret){
     LR clf = LR();
     clf.loadWeights(fmodel);
     MatrixXd X(row,col);
@@ -50,22 +49,18 @@ extern "C" double* predict_prob(double** features,int row,int col,char* fmodel){
     }
     VectorXd pred = clf.predict_prob(X);
 
-    double* ret = new double[row];
     for(int i=0;i<row;i++){
         ret[i] = pred(i);
     }
-
-    return ret;
 }
 
 
-extern "C" int* predict(double** features,int row,int col,char* fmodel){
-    double* prob = predict_prob(features,row,col,fmodel);
-    int* ret = new int[row];
+extern "C" void predict(double** features,int row,int col,char* fmodel,int* ret){
+    double* prob = new double[row];
+    predict_prob(features,row,col,fmodel,prob);
     for(int i=0;i<row;i++){
         ret[i] = prob[i]>0.5?1:0;
     }
-    return ret;
 }
 
 int main(){
@@ -85,7 +80,14 @@ int main(){
         labels[i] = labels_value[i];
     }
 
-    char* ret = fit(features,labels,row,col,200,0.01,0.0,0.01);
+    char* ret = new char[26];
+    fit(features,labels,row,col,200,0.01,0.0,0.01,ret);
     cout<<ret<<endl;
+
+    int* pred = new int[row];
+    predict(features,row,col,ret,pred);
+    for(int i=0;i<row;i++){
+        cout<<pred[i]<<",";
+    }
 }
 
