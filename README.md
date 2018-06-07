@@ -1,8 +1,10 @@
 - compile, generate `liblr.so`
 ```
-g++ -fPIC -shared -o liblr.so api.cc lr.cc common_functions.cc
+g++ -fPIC -shared -o liblr.so python_wrapper.cc lr.cc utils.cc
 
 ```
 
-- run the `lr.py`
+- `cp liblr.so python-package/lr/`
+
+- run the `example.py`
 
