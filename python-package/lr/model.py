@@ -13,6 +13,7 @@ class model(object):
         self.l2_lambda = l2_lambda
         self.tolerance = tolerance
         self.fmodel = None
+        self.auto_clear = True
 
     # support python list, numpy array
     def fit(self,features,labels):
@@ -78,9 +79,11 @@ class model(object):
 
     def load(self,path):
         self.fmodel = path
+        self.auto_clear = False
 
     def __del__(self):
-        os.remove(self.fmodel)
+        if self.auto_clear:
+            os.remove(self.fmodel)
 
     # old version code
     # only support python list
