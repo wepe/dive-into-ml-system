@@ -24,33 +24,72 @@ LR::LR(int max_iter,double alpha,double lambda,double tolerance){
 LR::~LR(){}
 
 
+MatrixXd slice(MatrixXd X,int start_idx,int end_idx){
+    MatrixXd ret(end_idx-start_idx+1,X.cols());
+    for(int i=start_idx;i<=end_idx;i++){
+        ret.row(i-start_idx) = X.row(i);
+    }
+    return ret;
+}
 
-void LR::fit(MatrixXd X,VectorXi y){
+VectorXd slice(VectorXd y,int start_idx,int end_idx){
+    VectorXd ret(end_idx-start_idx+1);
+    for(int i=start_idx;i<=end_idx;i++){
+        ret(i-start_idx) = y(i);
+    }
+    return ret;
+}
+
+
+void LR::fit(MatrixXd X,VectorXd y,int batch_size,int early_stopping_round){
 	//learn VectorXd W, consider reg,max_iter,tol.   
 
 	W = VectorXd::Random(X.cols()+1);  //the last column of weight represent bias
 	MatrixXd X_new(X.rows(),X.cols()+1);
 	X_new<<X,MatrixXd::Ones(X.rows(),1);  //last column is 1.0
 
+    //perform early stopping
+    double best_acc = -1.0;
+    int become_worse_round = 0;
 	for(int iter=0;iter<max_iter;iter++){
-		VectorXd y_pred = predict_prob(X);
-        VectorXd y_d = y.cast<double>();  //cast type first
-		VectorXd E = y_pred - y_d;
+        //index of this batch samples
+        int start_idx = (batch_size*iter)%(static_cast<int>(X.rows()));
+        int end_idx = min(start_idx+batch_size,static_cast<int>(X.rows()));
+        
+        MatrixXd X_batch = slice(X,start_idx,end_idx-1);
+        VectorXd y_batch = slice(y,start_idx,end_idx-1);
+        MatrixXd X_new_batch = slice(X_new,start_idx,end_idx-1);
+        
+        //
+		VectorXd y_pred = predict_prob(X_batch);
+		VectorXd E = y_pred - y_batch;
 
         //W:= (1-lambda/n_samples)W-alpha*X^T*E
 		//reference : http://blog.csdn.net/pakko/article/details/37878837
-		W = (1.0-lambda/y.size())*W - alpha*X_new.transpose()*E;
+		W = (1.0-lambda/batch_size)*W - alpha*X_new_batch.transpose()*E;
 	    
         //calculate the logloss and accuracy after this step
-        y_pred = predict_prob(X);
-		double loss = Utils::crossEntropyLoss(y,y_pred);
-        double acc = Utils::accuracy(y,y_pred);
+        y_pred = predict_prob(X_batch);
+        
+		double loss = Utils::crossEntropyLoss(y_batch,y_pred);
+        double acc = Utils::accuracy(y_batch,y_pred);
         cout<<boost::format("Iteration: %d, logloss:%.5f, accuracy:%.5f") %iter %loss %acc<< endl;
 		
         //when loss<tolerance, break
 		if(loss<=tolerance) break;
-	}
 
+        //perform early stopping
+        if(acc<best_acc){
+            become_worse_round += 1;
+        }else{
+            become_worse_round = 0;
+            best_acc = acc;
+        }
+        if(become_worse_round>=early_stopping_round){
+            cout<<"Early stopping."<<endl;
+            break;
+        }
+	}
 }
 
 

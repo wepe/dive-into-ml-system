@@ -16,7 +16,7 @@ class model(object):
         self.auto_clear = True
 
     # support python list, numpy array
-    def fit(self,features,labels):
+    def fit(self,features,labels,batch_size=128,early_stopping_round=20):
         # convert to numpy array
         #if not isinstance(features,np.ndarray):
         features = np.asarray(features,dtype=np.double)
@@ -32,11 +32,11 @@ class model(object):
         # call the C function
         DOUBLEPP = np.ctypeslib.ndpointer(dtype=np.uintp,ndim=1,flags='C')
         INTP = POINTER(c_int)
-        liblr.fit.argtypes = [DOUBLEPP,INTP,c_int,c_int,c_int,c_double,c_double,c_double,c_char_p]
+        liblr.fit.argtypes = [DOUBLEPP,INTP,c_int,c_int,c_int,c_double,c_double,c_double,c_int,c_int,c_char_p]
         liblr.fit.restype = None
 
         # enable interrupt
-        t = Thread(target=liblr.fit,args=(double_p_p,int_p,c_int(row),c_int(col),c_int(self.max_iter),c_double(self.alpha),c_double(self.l2_lambda),c_double(self.tolerance),char_p))
+        t = Thread(target=liblr.fit,args=(double_p_p,int_p,c_int(row),c_int(col),c_int(self.max_iter),c_double(self.alpha),c_double(self.l2_lambda),c_double(self.tolerance),c_int(early_stopping_round),c_int(batch_size),char_p))
         t.daemon = True
         t.start()
         while t.is_alive():

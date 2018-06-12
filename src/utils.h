@@ -8,8 +8,8 @@ class Utils{
 public:
 	// sigmod function, depend on <cmath> library
 	static double sigmod(double x);
-	static double crossEntropyLoss(Eigen::VectorXi y,Eigen::VectorXd h);
-    static double accuracy(Eigen::VectorXi y,Eigen::VectorXd pred);
+	static double crossEntropyLoss(Eigen::VectorXd y,Eigen::VectorXd h);
+    static double accuracy(Eigen::VectorXd y,Eigen::VectorXd pred);
 };
 
 

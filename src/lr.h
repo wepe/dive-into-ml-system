@@ -9,7 +9,7 @@ public:
     LR();
 	LR(int max_iter,double alpha,double lambda,double tolerance);
     ~LR();
-	void fit(Eigen::MatrixXd X,Eigen::VectorXi y);
+	void fit(Eigen::MatrixXd X,Eigen::VectorXd y,int batch_size,int early_stopping_round);
 	Eigen::VectorXd getW();
 	Eigen::VectorXd predict_prob(Eigen::MatrixXd X);
 	Eigen::VectorXi predict(Eigen::MatrixXd X);

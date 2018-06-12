@@ -14,10 +14,10 @@ void gen_random(char *s, int len) {
     s[len] = 0;
 }
 
-extern "C" void fit(double** features,int* labels,int row,int col,int max_iter,double alpha,double lambda,double tolerance,char* ret){
+extern "C" void fit(double** features,int* labels,int row,int col,int max_iter,double alpha,double lambda,double tolerance,int early_stopping_round,int batch_size,char* ret){
     //initialize data of Eigen type
     MatrixXd X(row,col);
-    VectorXi y(row);
+    VectorXd y(row);
     for(int i=0;i<row;i++){
         for(int j=0;j<col;j++){
             X(i,j) = features[i][j];
@@ -27,7 +27,7 @@ extern "C" void fit(double** features,int* labels,int row,int col,int max_iter,d
 
     //train the logistic regression model
     LR clf = LR(max_iter,alpha,lambda,tolerance);
-    clf.fit(X,y);
+    clf.fit(X,y,batch_size,early_stopping_round);
 
     //save the model weights
     char* fmodel = new char[21];
@@ -64,6 +64,8 @@ extern "C" void predict(double** features,int row,int col,char* fmodel,int* ret)
 }
 
 int main(){
+
+
     int row=10,col=2;
     double** features = new double *[row];
     for(int i=0;i<row;i++){
@@ -81,7 +83,7 @@ int main(){
     }
 
     char* ret = new char[26];
-    fit(features,labels,row,col,200,0.01,0.0,0.01,ret);
+    fit(features,labels,row,col,200,0.01,0.0,0.01,10,64,ret);
     cout<<ret<<endl;
 
     int* pred = new int[row];
