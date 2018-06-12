@@ -48,6 +48,9 @@ void LR::fit(MatrixXd X,VectorXd y,int batch_size,int early_stopping_round){
 	MatrixXd X_new(X.rows(),X.cols()+1);
 	X_new<<X,MatrixXd::Ones(X.rows(),1);  //last column is 1.0
 
+    MatrixXd X_batch;
+    VectorXd y_batch;
+    MatrixXd X_new_batch;
     //perform early stopping
     double best_acc = -1.0;
     int become_worse_round = 0;
@@ -56,9 +59,9 @@ void LR::fit(MatrixXd X,VectorXd y,int batch_size,int early_stopping_round){
         int start_idx = (batch_size*iter)%(static_cast<int>(X.rows()));
         int end_idx = min(start_idx+batch_size,static_cast<int>(X.rows()));
         
-        MatrixXd X_batch = slice(X,start_idx,end_idx-1);
-        VectorXd y_batch = slice(y,start_idx,end_idx-1);
-        MatrixXd X_new_batch = slice(X_new,start_idx,end_idx-1);
+        X_batch = slice(X,start_idx,end_idx-1);
+        y_batch = slice(y,start_idx,end_idx-1);
+        X_new_batch = slice(X_new,start_idx,end_idx-1);
         
         //
 		VectorXd y_pred = predict_prob(X_batch);
