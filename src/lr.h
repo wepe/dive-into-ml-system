@@ -3,13 +3,15 @@
 
 #include <eigen3/Eigen/Dense>
 #include <string>
+#include "utils.h"
+
 
 class LR{
 public:
     LR();
 	LR(int max_iter,double alpha,double lambda,double tolerance);
     ~LR();
-	void fit(Eigen::MatrixXd X,Eigen::VectorXd y,int batch_size,int early_stopping_round);
+	void fit(Eigen::MatrixXd X,Eigen::VectorXd y,int batch_size,int early_stopping_round,double (*metric)(double* y,double* y_pred,int size)=Utils::accuracy);
 	Eigen::VectorXd getW();
 	Eigen::VectorXd predict_prob(Eigen::MatrixXd X);
 	Eigen::VectorXi predict(Eigen::MatrixXd X);

@@ -6,6 +6,16 @@ from threading import Thread
 
 liblr = cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__))+'/liblr.so')
 
+def accuracy(y,pred,size):
+    hit = 0.0
+    for i in range(size):
+        if y[i]==1.0 and pred[i]>0.5:
+            hit += 1.0
+        if y[i]==0.0 and pred[i]<=0.5:
+            hit += 1.0
+    return hit/size
+
+
 class model(object):
     def __init__(self,max_iter=200,alpha=0.01,l2_lambda=0.01,tolerance=0.001):
         self.max_iter = max_iter
@@ -32,11 +42,12 @@ class model(object):
         # call the C function
         DOUBLEPP = np.ctypeslib.ndpointer(dtype=np.uintp,ndim=1,flags='C')
         INTP = POINTER(c_int)
-        liblr.fit.argtypes = [DOUBLEPP,INTP,c_int,c_int,c_int,c_double,c_double,c_double,c_int,c_int,c_char_p]
+        METRIC = CFUNCTYPE(c_double,POINTER(c_double),POINTER(c_double),c_int)
+        liblr.fit.argtypes = [DOUBLEPP,INTP,c_int,c_int,c_int,c_double,c_double,c_double,c_int,c_int,c_char_p,METRIC]
         liblr.fit.restype = None
 
         # enable interrupt
-        t = Thread(target=liblr.fit,args=(double_p_p,int_p,c_int(row),c_int(col),c_int(self.max_iter),c_double(self.alpha),c_double(self.l2_lambda),c_double(self.tolerance),c_int(early_stopping_round),c_int(batch_size),char_p))
+        t = Thread(target=liblr.fit,args=(double_p_p,int_p,c_int(row),c_int(col),c_int(self.max_iter),c_double(self.alpha),c_double(self.l2_lambda),c_double(self.tolerance),c_int(early_stopping_round),c_int(batch_size),char_p,METRIC(accuracy)))
         t.daemon = True
         t.start()
         while t.is_alive():

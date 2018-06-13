@@ -30,3 +30,50 @@ double Utils::accuracy(Eigen::VectorXd y, Eigen::VectorXd pred){
     }
     return hit/n;
 }
+
+double Utils::accuracy(double* y,double* pred,int size){
+   double hit = 0.0;
+   for(int i=0;i<size;i++){
+       if(y[i]==(pred[i]>0.5?1.0:0.0)){
+           hit += 1.0;
+       }
+   }
+   return hit/size;
+}
+
+Eigen::MatrixXd Utils::slice(Eigen::MatrixXd X,int start_idx,int end_idx){
+    Eigen::MatrixXd ret(end_idx-start_idx+1,X.cols());
+    for(int i=start_idx;i<=end_idx;i++){
+        ret.row(i-start_idx) = X.row(i);
+    }
+    return ret;
+}
+
+Eigen::VectorXd Utils::slice(Eigen::VectorXd y,int start_idx,int end_idx){
+    Eigen::VectorXd ret(end_idx-start_idx+1);
+    for(int i=start_idx;i<=end_idx;i++){
+        ret(i-start_idx) = y(i);
+    }
+    return ret;
+}
+
+
+int* Utils::VectorXi_to_int_array(Eigen::VectorXi y){
+    int size = y.size();
+    int* ret = new int[size];
+    for(int i=0;i<size;i++){
+        ret[i] = y(i);
+    }
+    return ret;
+}  
+
+double* Utils::VectorXd_to_double_array(Eigen::VectorXd pred){
+    int size = pred.size();
+    double* ret = new double[size];
+    for(int i=0;i<size;i++){
+        ret[i] = pred(i);
+    }
+    return ret;
+}
+
+

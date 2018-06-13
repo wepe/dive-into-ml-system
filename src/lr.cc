@@ -23,25 +23,7 @@ LR::LR(int max_iter,double alpha,double lambda,double tolerance){
 
 LR::~LR(){}
 
-
-MatrixXd slice(MatrixXd X,int start_idx,int end_idx){
-    MatrixXd ret(end_idx-start_idx+1,X.cols());
-    for(int i=start_idx;i<=end_idx;i++){
-        ret.row(i-start_idx) = X.row(i);
-    }
-    return ret;
-}
-
-VectorXd slice(VectorXd y,int start_idx,int end_idx){
-    VectorXd ret(end_idx-start_idx+1);
-    for(int i=start_idx;i<=end_idx;i++){
-        ret(i-start_idx) = y(i);
-    }
-    return ret;
-}
-
-
-void LR::fit(MatrixXd X,VectorXd y,int batch_size,int early_stopping_round){
+void LR::fit(MatrixXd X,VectorXd y,int batch_size,int early_stopping_round,double (*metric)(double* y,double* pred,int size)){
 	//learn VectorXd W, consider reg,max_iter,tol.   
 
 	W = VectorXd::Random(X.cols()+1);  //the last column of weight represent bias
@@ -59,9 +41,9 @@ void LR::fit(MatrixXd X,VectorXd y,int batch_size,int early_stopping_round){
         int start_idx = (batch_size*iter)%(static_cast<int>(X.rows()));
         int end_idx = min(start_idx+batch_size,static_cast<int>(X.rows()));
         
-        X_batch = slice(X,start_idx,end_idx-1);
-        y_batch = slice(y,start_idx,end_idx-1);
-        X_new_batch = slice(X_new,start_idx,end_idx-1);
+        X_batch = Utils::slice(X,start_idx,end_idx-1);
+        y_batch = Utils::slice(y,start_idx,end_idx-1);
+        X_new_batch = Utils::slice(X_new,start_idx,end_idx-1);
         
         //
 		VectorXd y_pred = predict_prob(X_batch);
@@ -75,7 +57,8 @@ void LR::fit(MatrixXd X,VectorXd y,int batch_size,int early_stopping_round){
         y_pred = predict_prob(X_batch);
         
 		double loss = Utils::crossEntropyLoss(y_batch,y_pred);
-        double acc = Utils::accuracy(y_batch,y_pred);
+        //double acc = Utils::accuracy(y_batch,y_pred);
+        double acc = metric(Utils::VectorXd_to_double_array(y_batch),Utils::VectorXd_to_double_array(y_pred),end_idx-start_idx);
         cout<<boost::format("Iteration: %d, logloss:%.5f, accuracy:%.5f") %iter %loss %acc<< endl;
 		
         //when loss<tolerance, break

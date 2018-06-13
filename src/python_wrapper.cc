@@ -14,7 +14,7 @@ void gen_random(char *s, int len) {
     s[len] = 0;
 }
 
-extern "C" void fit(double** features,int* labels,int row,int col,int max_iter,double alpha,double lambda,double tolerance,int early_stopping_round,int batch_size,char* ret){
+extern "C" void fit(double** features,int* labels,int row,int col,int max_iter,double alpha,double lambda,double tolerance,int early_stopping_round,int batch_size,char* ret,double (*metric)(double* y,double* pred,int size)=Utils::accuracy){
     //initialize data of Eigen type
     MatrixXd X(row,col);
     VectorXd y(row);
@@ -27,7 +27,7 @@ extern "C" void fit(double** features,int* labels,int row,int col,int max_iter,d
 
     //train the logistic regression model
     LR clf = LR(max_iter,alpha,lambda,tolerance);
-    clf.fit(X,y,batch_size,early_stopping_round);
+    clf.fit(X,y,batch_size,early_stopping_round,metric);
 
     //save the model weights
     char* fmodel = new char[21];
