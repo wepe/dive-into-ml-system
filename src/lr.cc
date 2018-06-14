@@ -11,11 +11,11 @@ using namespace std;
 using namespace Eigen;
 
 LR::LR(){
-    LR(100,0.01,0.01,0.001);
+　　　　LR(100,0.01,0.01,0.001);
 }
 
 LR::LR(int max_iter,double alpha,double lambda,double tolerance){
-　　　　this->lambda = lambda; 
+　　　　this->lambda = lambda;
 　　　　this->max_iter = max_iter;
 　　　　this->tolerance = tolerance;
 　　　　this->alpha = alpha;
