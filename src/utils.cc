@@ -3,19 +3,19 @@
 #include <iostream>
 
 double Utils::sigmod(double x){
-	return 1.0/(1.0+exp(-x));
+    return 1.0/(1.0+exp(-x));
 }
 
 
 double Utils::crossEntropyLoss(Eigen::VectorXd y,Eigen::VectorXd y_pred){
-	int n = y.size();
-	double loss;
-	for(int i=0;i<n;i++){
+    int n = y.size();
+    double loss;
+    for(int i=0;i<n;i++){
         double yi_prob = y_pred(i);
         yi_prob = std::min(std::max(yi_prob,0.0001),0.9999);
-		loss -= (y(i)*log2(yi_prob)+(1-y(i))*log2(1-yi_prob));
-	}
-	return loss/n;
+        loss -= (y(i)*log2(yi_prob)+(1-y(i))*log2(1-yi_prob));
+    }
+    return loss/n;
 }
 
 
@@ -75,5 +75,3 @@ double* Utils::VectorXd_to_double_array(Eigen::VectorXd pred){
     }
     return ret;
 }
-
-
