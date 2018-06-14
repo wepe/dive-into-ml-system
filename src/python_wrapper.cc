@@ -64,6 +64,8 @@ extern "C" void predict(double** features,int row,int col,char* fmodel,int* ret)
 }
 
 int main(){
+
+
     int row=10,col=2;
     double** features = new double *[row];
     for(int i=0;i<row;i++){
