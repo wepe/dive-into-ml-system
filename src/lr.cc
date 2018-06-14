@@ -57,7 +57,6 @@ void LR::fit(MatrixXd X,VectorXd y,int batch_size,int early_stopping_round,doubl
         y_pred = predict_prob(X_batch);
         
 		double loss = Utils::crossEntropyLoss(y_batch,y_pred);
-        //double acc = Utils::accuracy(y_batch,y_pred);
         double acc = metric(Utils::VectorXd_to_double_array(y_batch),Utils::VectorXd_to_double_array(y_pred),end_idx-start_idx);
         cout<<boost::format("Iteration: %d, logloss:%.5f, accuracy:%.5f") %iter %loss %acc<< endl;
 		
