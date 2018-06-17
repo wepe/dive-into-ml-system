@@ -21,11 +21,11 @@ def mean_accuracy(label,pred,size):
 
 features = np.load('features.dat')
 labels = np.load('labels.dat')
+print features.shape,labels.shape,labels.sum()
 
-clf = model(max_iter=1000,alpha=0.01,l2_lambda=0.1,tolerance=0.001)
+clf = model(max_iter=1000,alpha=0.01,l2_lambda=0.5,tolerance=0.01)
 clf.fit(features,labels,1024,100,mean_accuracy)
 print clf.predict(features[:30])
-
 
 clf.save("/home/wepon/lr.model")
 clf1 = model()

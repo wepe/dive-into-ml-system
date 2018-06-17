@@ -6,6 +6,8 @@
 #include <boost/format.hpp>
 #include "lr.h"
 #include "utils.h"
+#include <omp.h>
+#include <ctime>
 
 using namespace std;
 using namespace Eigen;
@@ -24,7 +26,8 @@ LR::LR(int max_iter,double alpha,double lambda,double tolerance){
 LR::~LR(){}
 
 void LR::fit(MatrixXd X,VectorXd y,int batch_size,int early_stopping_round,double (*metric)(double* y,double* pred,int size)){
-    //learn VectorXd W, consider reg,max_iter,tol.   
+    //learn VectorXd W, consider reg,max_iter,tol.
+    srand(time(NULL));
     W = VectorXd::Random(X.cols()+1);  //the last column of weight represent bias
     MatrixXd X_new(X.rows(),X.cols()+1);
     X_new<<X,MatrixXd::Ones(X.rows(),1);  //last column is 1.0
@@ -83,6 +86,7 @@ VectorXd LR::predict_prob(MatrixXd X){
     X_new<<X,MatrixXd::Ones(X.rows(),1);
     int num_samples = X_new.rows();
     VectorXd y_pred_prob = VectorXd::Zero(num_samples);
+    #pragma omp parallel for
     for(int num=0;num<num_samples;num++){
         y_pred_prob(num) = Utils::sigmod(X_new.row(num).dot(W));
     }
@@ -94,6 +98,7 @@ VectorXi LR::predict(MatrixXd X){
     //predict the label for given data X
     VectorXd y_pred_prob = predict_prob(X);
     VectorXi y_pred(y_pred_prob.size());
+    #pragma omp parallel for
     for(int num=0;num<y_pred_prob.size();num++){
         y_pred(num) = y_pred_prob(num)>0.5?1:0;
     }
